@@ -175,6 +175,7 @@ where
                 xdg_shell_state: XdgShell::bind(&globals, &qh)
                     .expect("xdg shell is not available"),
                 layer_shell: LayerShell::bind(&globals, &qh).ok(),
+                // session-lock
                 data_device_manager_state: DataDeviceManagerState::bind(
                     &globals, &qh,
                 )
