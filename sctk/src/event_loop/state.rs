@@ -48,7 +48,7 @@ use sctk::{
                 wl_surface::{self, WlSurface},
                 wl_touch::WlTouch,
             },
-            QueueHandle,
+            Connection, QueueHandle,
         },
     },
     registry::RegistryState,
@@ -57,6 +57,7 @@ use sctk::{
         pointer::{CursorIcon, ThemedPointer},
         SeatState,
     },
+    session_lock::{SessionLock, SessionLockState, SessionLockSurface},
     shell::{
         wlr_layer::{
             Anchor, KeyboardInteractivity, Layer, LayerShell, LayerSurface,
@@ -248,6 +249,8 @@ pub struct SctkPopupData {
 
 /// Wrapper to carry sctk state.
 pub struct SctkState<T> {
+    pub(crate) connection: Connection,
+
     /// the cursor wl_surface
     pub(crate) _cursor_surface: Option<wl_surface::WlSurface>,
     /// a memory pool
@@ -302,6 +305,9 @@ pub struct SctkState<T> {
     pub(crate) layer_shell: Option<LayerShell>,
     pub(crate) data_device_manager_state: DataDeviceManagerState,
     pub(crate) activation_state: Option<ActivationState>,
+    pub(crate) session_lock_state: SessionLockState,
+    pub(crate) session_lock: Option<SessionLock>,
+    pub(crate) session_lock_surfaces: Vec<SessionLockSurface>,
     pub(crate) token_ctr: u32,
 }
 
@@ -801,5 +807,9 @@ where
             scale_factor: None,
         });
         Ok((id, wl_surface))
+    }
+
+    pub fn get_lock_surface() {
+        todo!()
     }
 }

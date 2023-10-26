@@ -8,7 +8,7 @@ use crate::{
 };
 
 use iced_futures::core::event::{
-    wayland::{LayerEvent, PopupEvent},
+    wayland::{LayerEvent, PopupEvent, SessionLockEvent},
     PlatformSpecific,
 };
 use iced_runtime::{
@@ -34,6 +34,7 @@ use sctk::{
         pointer::{PointerEvent, PointerEventKind},
         Capability,
     },
+    session_lock::SessionLockSurfaceConfigure,
     shell::{
         wlr_layer::LayerSurfaceConfigure,
         xdg::{popup::PopupConfigure, window::WindowConfigure},
@@ -188,6 +189,13 @@ pub enum SctkEvent {
     DndOffer {
         event: DndOfferEvent,
         surface: WlSurface,
+    },
+    /// session lock events
+    SessionLocked,
+    SessionLockFinished,
+    SessionLockSurfaceConfigure {
+        id: WlSurface,
+        configure: SessionLockSurfaceConfigure,
     },
 }
 
@@ -481,6 +489,18 @@ impl SctkEvent {
                             ))
                         }
                         SurfaceIdWrapper::Dnd(_) => None,
+                        SurfaceIdWrapper::SessionLock(_) => {
+                            Some(iced_runtime::core::Event::PlatformSpecific(
+                                PlatformSpecific::Wayland(
+                                    wayland::Event::SessionLock(
+                                        SessionLockEvent::Focused(
+                                            surface,
+                                            id.inner(),
+                                        ),
+                                    ),
+                                ),
+                            ))
+                        }
                     })
                     .into_iter()
                     .chain([iced_runtime::core::Event::PlatformSpecific(
@@ -522,6 +542,18 @@ impl SctkEvent {
                             ))
                         }
                         SurfaceIdWrapper::Dnd(_) => None,
+                        SurfaceIdWrapper::SessionLock(_) => {
+                            Some(iced_runtime::core::Event::PlatformSpecific(
+                                PlatformSpecific::Wayland(
+                                    wayland::Event::SessionLock(
+                                        SessionLockEvent::Focused(
+                                            surface,
+                                            id.inner(),
+                                        ),
+                                    ),
+                                ),
+                            ))
+                        }
                     })
                     .into_iter()
                     .chain([iced_runtime::core::Event::PlatformSpecific(
@@ -910,6 +942,25 @@ impl SctkEvent {
                     .collect()
                 }
             },
+            SctkEvent::SessionLocked => {
+                Some(iced_runtime::core::Event::PlatformSpecific(
+                    PlatformSpecific::Wayland(wayland::Event::SessionLock(
+                        wayland::SessionLockEvent::Locked,
+                    )),
+                ))
+                .into_iter()
+                .collect()
+            }
+            SctkEvent::SessionLockFinished => {
+                Some(iced_runtime::core::Event::PlatformSpecific(
+                    PlatformSpecific::Wayland(wayland::Event::SessionLock(
+                        wayland::SessionLockEvent::Finished,
+                    )),
+                ))
+                .into_iter()
+                .collect()
+            }
+            SctkEvent::SessionLockSurfaceConfigure { .. } => vec![],
         }
     }
 }

@@ -93,6 +93,8 @@ pub enum Event<Message> {
     DataDevice(platform_specific::wayland::data_device::Action<Message>),
     /// xdg-activation request from the client
     Activation(platform_specific::wayland::activation::Action<Message>),
+    /// data session lock requests from the client
+    SessionLock(platform_specific::wayland::session_lock::Action<Message>),
     /// request sctk to set the cursor of the active pointer
     SetCursor(Interaction),
     /// Application Message
@@ -770,6 +772,42 @@ where
                             }
                         })
                     }
+                    SctkEvent::SessionLockSurfaceConfigure { id, configure } => {
+                        let wl_surface = &id;
+                        if let Some(id) = surface_ids.get(&id.id()) {
+                            compositor_surfaces.entry(id.inner()).or_insert_with(|| {
+                                let mut wrapper = SurfaceDisplayWrapper {
+                                     comp_surface: None,
+                                     backend: backend.clone(),
+                                     wl_surface: wl_surface.clone()
+                                };
+                                let c_surface = compositor.create_surface(&wrapper, configure.new_size.0, configure.new_size.1);
+                                wrapper.comp_surface.replace(c_surface);
+                                wrapper
+                            });
+
+                            let Some(state) = states.get_mut(&id.inner()) else {
+                                continue;
+                            };
+
+                            // XXX if first configure
+                            let user_interface = build_user_interface(
+                                &application,
+                                user_interface::Cache::default(),
+                                &mut renderer,
+                                state.logical_size(),
+                                &state.title,
+                                &mut debug,
+                                *id,
+                                &mut auto_size_surfaces,
+                                &mut ev_proxy
+                            );
+                            interfaces.insert(id.inner(), user_interface);
+
+                            state.set_logical_size(configure.new_size.0 as f64 , configure.new_size.1 as f64);
+                        }
+
+                    }
                     _ => {}
                 }
             }
@@ -901,6 +939,8 @@ where
                         SctkEvent::NewOutput { .. }
                             | SctkEvent::UpdateOutput { .. }
                             | SctkEvent::RemovedOutput(_)
+                            | SctkEvent::SessionLocked
+                            | SctkEvent::SessionLockFinished
                     );
                     if remove {
                         let event = sctk_events.remove(i);
@@ -1233,7 +1273,7 @@ where
                     // Otherwise cpu goes up in the running application as well as in cosmic-comp
                     if let Some(surface) = state.frame.take() {
                         surface.frame(&queue_handle, surface.clone());
-                        surface.commit();
+                        //surface.commit();
                     }
 
                     debug.render_started();
@@ -1446,6 +1486,7 @@ pub enum SurfaceIdWrapper {
     Window(SurfaceId),
     Popup(SurfaceId),
     Dnd(SurfaceId),
+    SessionLock(SurfaceId),
 }
 
 impl SurfaceIdWrapper {
@@ -1455,6 +1496,7 @@ impl SurfaceIdWrapper {
             SurfaceIdWrapper::Window(id) => *id,
             SurfaceIdWrapper::Popup(id) => *id,
             SurfaceIdWrapper::Dnd(id) => *id,
+            SurfaceIdWrapper::SessionLock(id) => *id,
         }
     }
 }
@@ -1529,6 +1571,7 @@ where
                     );
                 }
                 SurfaceIdWrapper::Dnd(_) => {}
+                SurfaceIdWrapper::SessionLock(_) => {}
             };
         }
 
@@ -2086,6 +2129,9 @@ where
             ) => {
                 proxy.send_event(Event::Activation(activation_action));
             }
+            command::Action::PlatformSpecific(platform_specific::Action::Wayland(platform_specific::wayland::Action::SessionLock(session_lock_action))) => {
+                proxy.send_event(Event::SessionLock(session_lock_action));
+            }
             _ => {}
         };
     None
@@ -2158,5 +2204,8 @@ fn event_is_for_surface(
         SctkEvent::ScaleFactorChanged { id, .. } => &id.id() == object_id,
         SctkEvent::DndOffer { surface, .. } => &surface.id() == object_id,
         SctkEvent::DataSource(_) => true,
+        SctkEvent::SessionLocked => false,
+        SctkEvent::SessionLockFinished => false,
+        SctkEvent::SessionLockSurfaceConfigure { .. } => false,
     }
 }
