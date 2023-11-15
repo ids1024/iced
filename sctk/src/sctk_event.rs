@@ -191,8 +191,11 @@ pub enum SctkEvent {
         surface: WlSurface,
     },
     /// session lock events
+    // TODO own enum?
+    // - fix behavior, then clean up
     SessionLocked,
     SessionLockFinished,
+    SessionLockSurfaceCreated(ObjectId, SurfaceId),
     SessionLockSurfaceConfigure {
         id: WlSurface,
         configure: SessionLockSurfaceConfigure,
@@ -493,7 +496,7 @@ impl SctkEvent {
                             Some(iced_runtime::core::Event::PlatformSpecific(
                                 PlatformSpecific::Wayland(
                                     wayland::Event::SessionLock(
-                                        SessionLockEvent::Focused(
+                                        SessionLockEvent::Unfocused(
                                             surface,
                                             id.inner(),
                                         ),
@@ -512,7 +515,7 @@ impl SctkEvent {
                     .collect(),
                 KeyboardEventVariant::Enter(surface) => surface_ids
                     .get(&surface.id())
-                    .and_then(|id| match id {
+                    .map_or_else(|| {eprintln!("NO ID"); None}, |id| match id {
                         SurfaceIdWrapper::LayerSurface(_id) => {
                             Some(iced_runtime::core::Event::PlatformSpecific(
                                 PlatformSpecific::Wayland(

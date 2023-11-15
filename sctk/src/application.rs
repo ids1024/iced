@@ -489,6 +489,7 @@ where
                     },
                     SctkEvent::WindowEvent { variant, id } => match variant {
                         crate::sctk_event::WindowEventVariant::Created(id, native_id) => {
+                            // XXX this is where we're updating surface_ids. states?
                             surface_ids.insert(id, SurfaceIdWrapper::Window(native_id));
                             states.insert(native_id, State::new(&application, SurfaceIdWrapper::Window(native_id)));
                         }
@@ -1273,7 +1274,7 @@ where
                     // Otherwise cpu goes up in the running application as well as in cosmic-comp
                     if let Some(surface) = state.frame.take() {
                         surface.frame(&queue_handle, surface.clone());
-                        //surface.commit();
+                        surface.commit();
                     }
 
                     debug.render_started();
