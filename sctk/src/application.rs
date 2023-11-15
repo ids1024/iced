@@ -489,7 +489,6 @@ where
                     },
                     SctkEvent::WindowEvent { variant, id } => match variant {
                         crate::sctk_event::WindowEventVariant::Created(id, native_id) => {
-                            // XXX this is where we're updating surface_ids. states?
                             surface_ids.insert(id, SurfaceIdWrapper::Window(native_id));
                             states.insert(native_id, State::new(&application, SurfaceIdWrapper::Window(native_id)));
                         }
@@ -772,6 +771,10 @@ where
                                 _ => true,
                             }
                         })
+                    }
+                    SctkEvent::SessionLockSurfaceCreated(_id, id, native_id) => {
+                        surface_ids.insert(id, SurfaceIdWrapper::SessionLock(native_id));
+                        states.insert(native_id, State::new(&application, SurfaceIdWrapper::SessionLock(native_id)));
                     }
                     SctkEvent::SessionLockSurfaceConfigure { id, configure } => {
                         let wl_surface = &id;
@@ -1274,7 +1277,7 @@ where
                     // Otherwise cpu goes up in the running application as well as in cosmic-comp
                     if let Some(surface) = state.frame.take() {
                         surface.frame(&queue_handle, surface.clone());
-                        surface.commit();
+                        //surface.commit(); XXX
                     }
 
                     debug.render_started();
@@ -2207,6 +2210,7 @@ fn event_is_for_surface(
         SctkEvent::DataSource(_) => true,
         SctkEvent::SessionLocked => false,
         SctkEvent::SessionLockFinished => false,
+        SctkEvent::SessionLockSurfaceCreated ( id, .. ) => &id.id() == object_id,
         SctkEvent::SessionLockSurfaceConfigure { .. } => false,
     }
 }

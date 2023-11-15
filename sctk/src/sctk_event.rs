@@ -195,7 +195,7 @@ pub enum SctkEvent {
     // - fix behavior, then clean up
     SessionLocked,
     SessionLockFinished,
-    SessionLockSurfaceCreated(ObjectId, SurfaceId),
+    SessionLockSurfaceCreated(WlSurface, ObjectId, SurfaceId),
     SessionLockSurfaceConfigure {
         id: WlSurface,
         configure: SessionLockSurfaceConfigure,
@@ -963,6 +963,7 @@ impl SctkEvent {
                 .into_iter()
                 .collect()
             }
+            SctkEvent::SessionLockSurfaceCreated { .. } => vec![],
             SctkEvent::SessionLockSurfaceConfigure { .. } => vec![],
         }
     }

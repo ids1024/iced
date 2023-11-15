@@ -1289,9 +1289,7 @@ where
                                 self.state.session_lock_surfaces.push(lock_surface);
                                 let object_id = wl_surface.id();
                                 sticky_exit_callback(
-                                    IcedSctkEvent::SctkEvent(SctkEvent::WindowEvent {
-                                        variant: WindowEventVariant::Created(object_id.clone(), id),
-                                        id: wl_surface.clone() }),
+                                    IcedSctkEvent::SctkEvent(SctkEvent::SessionLockSurfaceCreated(wl_surface.clone(), object_id.clone(), id)),
                                     &self.state,
                                     &mut control_flow,
                                     &mut callback,
