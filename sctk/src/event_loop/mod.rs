@@ -1297,6 +1297,15 @@ where
                             }
                         }
                         platform_specific::wayland::session_lock::Action::DestroyLockSurface { id } => {
+                            /*
+                            if let Some(i) =
+                                self.state.session_lock_surfaces.iter().position(|l| {
+                                    l.wl_surface().id() == id
+                                })
+                            {
+                                self.state.session_lock_surfaces.remove(i);
+                            }
+                            */
                             // TODO
                         }
                     }
