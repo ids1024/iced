@@ -56,6 +56,7 @@ a11y = ["iced_accessibility", "iced_core/a11y", "iced_widget/a11y", "iced_winit?
 winit = ["iced_winit", "iced_accessibility?/accesskit_winit"]
 # Enables the sctk shell. COnflicts with `winit` and `glutin`.
 wayland = ["iced_sctk", "iced_widget/wayland", "iced_accessibility?/accesskit_unix", "iced_core/wayland"]
+profile-with-tracy = ["profiling"]
 
 [dependencies]
 iced_core.workspace = true
@@ -75,6 +76,9 @@ thiserror.workspace = true
 
 image.workspace = true
 image.optional = true
+
+profiling.workspace = true
+profiling.optional = true
 
 
 [workspace]
@@ -178,3 +182,4 @@ wgpu = { git = "https://github.com/gfx-rs/wgpu", rev = "20fda69" }
 winapi = "0.3"
 window_clipboard = "0.4"
 winit = { git = "https://github.com/pop-os/winit.git", branch = "winit-0.29" }
+profiling = { version = "1.0", features = ["profile-with-tracy"] }
