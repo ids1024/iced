@@ -963,6 +963,8 @@ async fn run_instance<'a, P, C>(
                                     },
                                     Default::default(),
                                 );
+                                platform_specific_handler
+                                    .clear_subsurface_list();
                                 let mut bytes = compositor.screenshot(
                                     &mut renderer,
                                     &mut surface,
@@ -1713,6 +1715,7 @@ async fn run_instance<'a, P, C>(
                             cursor,
                         )
                     };
+                    platform_specific_handler.clear_subsurface_list();
 
                     if new_mouse_interaction != window.mouse_interaction {
                         if let Some(interaction) =
