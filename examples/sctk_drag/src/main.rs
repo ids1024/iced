@@ -6,10 +6,6 @@ use std::{borrow::Cow, convert::Infallible};
 use dnd_destination::dnd_destination;
 use iced::{
     clipboard::mime::{AllowedMimeTypes, AsMimeTypes},
-    platform_specific::{
-        runtime::wayland::layer_surface::SctkLayerSurfaceSettings,
-        shell::commands::layer_surface::get_layer_surface,
-    },
     widget::{column, container, text},
     window, Element, Length, Task,
 };
@@ -97,22 +93,23 @@ pub struct DndTest {
 pub enum Message {
     Drag,
     DndData(MyDndString),
+    Id(iced::window::Id),
 }
 
 impl DndTest {
     fn new() -> (DndTest, Task<Message>) {
         let current_text = String::from("Hello, world!");
-        let mut s = SctkLayerSurfaceSettings::default();
-        s.size_limits = s.size_limits.min_width(100.0).max_width(400.0);
-        s.size = Some((Some(500), Some(600)));
-        // s.anchor = Anchor::TOP.union(Anchor::BOTTOM);
         (
             DndTest {
                 current_text,
                 source: None,
                 id: iced_core::window::Id::unique(),
             },
-            get_layer_surface(s),
+            iced::window::open(iced::window::Settings {
+                ..Default::default()
+            })
+            .1
+            .map(Message::Id),
         )
     }
 
@@ -126,6 +123,7 @@ impl DndTest {
                 dbg!(&s);
                 self.current_text = s.0;
             }
+            Message::Id(_) => {}
             _ => {}
         }
         Task::none()
