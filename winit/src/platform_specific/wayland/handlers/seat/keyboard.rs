@@ -56,10 +56,10 @@ impl KeyboardHandler for SctkState {
                 winit::event::WindowEvent::Focused(true),
             ));
             self.sctk_events.push(SctkEvent::KeyboardEvent {
-                 variant: KeyboardEventVariant::Enter(surface.clone()),
-                 kbd_id: keyboard.clone(),
-                 seat_id: seat,
-                 surface: surface.clone(),
+                variant: KeyboardEventVariant::Enter(surface.clone()),
+                kbd_id: keyboard.clone(),
+                seat_id: seat,
+                surface: surface.clone(),
             });
         }
     }
